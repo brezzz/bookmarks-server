@@ -14,6 +14,7 @@ const morganOption = (NODE_ENV === 'production')
 app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
+app.use(express.json());
 
 
 app.use(function validateBearerToken(req, res, next) {
@@ -91,8 +92,7 @@ res.json(bookmark);
 })
 
 
-app.post('/bookmarks', (req,res) =>
-{
+app.post('/bookmarks', (req,res) => {
   const {description} = req.body;
       
   if (!description) {
