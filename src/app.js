@@ -3,6 +3,7 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
+const bookmarkRouter = require('./bookmarks/bookmark-router')
 
 const app = express()
 const uuid = require('uuid/v4');
@@ -28,107 +29,21 @@ app.use(function validateBearerToken(req, res, next) {
   next()
 })
 
-const bookmarks = [{
+const bookmarks = [
+  {
   id: 1,
-  description:"website 1"
-}
-,{
-  id: 2,
-  description:"website 2"
-}]
+  description:"website 1"}
+,
+{id: 2,
+ description:"website 2"}]
 
 app.get('/hello', (req, res) => {
   res.send('Hello, boilerplate!')
 })
 
-const winston = require('winston');
 
-// set up winston
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({ filename: 'info.log' })
-  ]
-});
+app.use(bookmarkRouter)
 
-if (NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
-}
-
-
-app.get('/bookmarks', (req, res) => {
-  res
-          .json(bookmarks)
-})
-
-
-app.get('/bookmarks/:id',(req, res) => {
-  const { id } = req.params;
-const bookmark = bookmarks.find(bm => bm.id == id);
-
-// Verifys id of bookmark
-if (!bookmark) {
-  logger.error(`Bookmark with id ${id} not found.`);
-  return res
-    .status(404)
-    .send('Bookmark Not Found');
-}
-
-res.json(bookmark);
-})
-
-
-app.post('/bookmarks', (req,res) => {
-  const {description} = req.body;
-      
-  if (!description) {
-    logger.error(`Description must be entered`);
-    return res
-      .status(400)
-      .send('Invalid data');
-  }
-  
-const id = uuid();
-
-const bookmark = {
-  id,
-  description
-};
-
-bookmarks.push(bookmark);
-
-logger.info(`Bookmark with id ${id} created`);
-
-res
-  .status(201)
-  .location(`http://localhost:8000/bookmarks/${id}`)
-  .json(bookmark);
-
-})
-
-app.delete('/bookmarks/:id',(req, res) => {
-  const { id } = req.params;
-
-  const bmIndex = bookmarks.findIndex(bm => bm.id == id);
-
-  if (bmIndex === -1) {
-    logger.error(`Bookmark with id ${id} not found.`);
-    return res
-      .status(404)
-      .send('Not found');
-  }
-
-  bookmarks.splice(bmIndex, 1);
-
-  logger.info(`Bookmark with id ${id} deleted.`);
-
-  res
-    .status(204)
-    .end();
-})
 
 app.use(function errorHandler(error, req, res, next) {
   let response
@@ -140,5 +55,6 @@ app.use(function errorHandler(error, req, res, next) {
   }
 res.status(500).json(reponse)}
 )
+
 
 module.exports = app
