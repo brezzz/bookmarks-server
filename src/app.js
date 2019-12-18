@@ -28,31 +28,20 @@ app.use(function validateBearerToken(req, res, next) {
   next()
 })
 
-
-
-
 const bookmarks = [{
   id: 1,
   description:"website 1"
 }
-,
-{
+,{
   id: 2,
   description:"website 2"
-}
-
-
-
-]
+}]
 
 app.get('/hello', (req, res) => {
   res.send('Hello, boilerplate!')
 })
 
-
-
 const winston = require('winston');
-
 
 // set up winston
 const logger = winston.createLogger({
@@ -139,7 +128,6 @@ app.delete('/bookmarks/:id',(req, res) => {
   res
     .status(204)
     .end();
-
 })
 
 app.use(function errorHandler(error, req, res, next) {
@@ -152,6 +140,5 @@ app.use(function errorHandler(error, req, res, next) {
   }
 res.status(500).json(reponse)}
 )
-
 
 module.exports = app
