@@ -1,60 +1,99 @@
-require('dotenv').config()
 const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
-const helmet = require('helmet')
-const bookmarkRouter = require('./bookmarks/bookmark-router')
-
-const app = express()
 const uuid = require('uuid/v4');
-const { NODE_ENV } = require('./config')
-const morganOption = (NODE_ENV === 'production')
-  ? 'tiny'
-  : 'common';
+const logger = require('../logger')
 
-app.use(morgan(morganOption))
-app.use(helmet())
-app.use(cors())
-app.use(express.json());
+const bookmarkRouter = express.Router()
+const bodyParser = express.json()
 
 
-app.use(function validateBearerToken(req, res, next) {
-  const apiToken = process.env.API_TOKEN
-  const authToken = req.get('Authorization')
-
-  if (!authToken || authToken.split(' ')[1] !== apiToken) {
-    return res.status(401).json({ error: 'Unauthorized request' })
-  }
-  // move to the next middleware
-  next()
-})
-
-const bookmarks = [
-  {
+const bookmarks = [{
   id: 1,
-  description:"website 1"}
+  description:"website 1"
+}
 ,
-{id: 2,
- description:"website 2"}]
-
-app.get('/hello', (req, res) => {
-  res.send('Hello, boilerplate!')
-})
-
-
-app.use(bookmarkRouter)
+{
+  id: 2,
+  description:"website 2"
+}
+]
 
 
-app.use(function errorHandler(error, req, res, next) {
-  let response
-  if (NODE_ENV === 'production')  {
-      response = {error: {message: 'server error'}}
-  } else {
-      console.error(error)
-      response = {message: error.message, error}
-  }
-res.status(500).json(reponse)}
-)
+bookmarkRouter
+  .route('/bookmarks')
+  .get((req, res) => {
+    res
+    .json(bookmarks)  
+
+  })
+  .post(bodyParser,(req, res) => {
+      
+    
+    const {description} = req.body;
+        
+    if (!description) {
+      logger.error(`Description must be entered`);
+      return res
+        .status(400)
+        .send('Invalid data');
+    }
+    
+  const id = uuid();
+  
+  const bookmark = {
+    id,
+    description
+  };
+  
+  bookmarks.push(bookmark);
+  
+  logger.info(`Bookmark with id ${id} created`);
+  
+  res
+    .status(201)
+    .location(`http://localhost:8000/bookmarks/${id}`)
+    .json(bookmark);
+  
+  })
 
 
-module.exports = app
+  bookmarkRouter
+  .route('/bookmarks/:id')
+  .get((req, res) => {
+      
+    const { id } = req.params;
+    const bookmark = bookmarks.find(bm => bm.id == id);
+    
+    // Verifys id of bookmark
+    if (!bookmark) {
+      logger.error(`Bookmark with id ${id} not found.`);
+      return res
+        .status(404)
+        .send('Bookmark Not Found');
+    }
+    
+    res.json(bookmark);
+  })
+  .delete((req, res) => {
+      
+    const { id } = req.params;
+  
+    const bmIndex = bookmarks.findIndex(bm => bm.id == id);
+  
+    if (bmIndex === -1) {
+      logger.error(`Bookmark with id ${id} not found.`);
+      return res
+        .status(404)
+        .send('Not found');
+    }
+  
+    bookmarks.splice(bmIndex, 1);
+  
+    logger.info(`Bookmark with id ${id} deleted.`);
+  
+    res
+      .status(204)
+      .end();
+  })
+
+
+module.exports = bookmarkRouter
