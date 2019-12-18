@@ -1,8 +1,21 @@
 const express = require('express')
 const uuid = require('uuid/v4');
-const logger = require('./logger')
+const logger = require('../logger')
 
 const bookmarkRouter = express.Router()
+const bodyParser = express.json()
+
+
+const bookmarks = [{
+  id: 1,
+  description:"website 1"
+}
+,
+{
+  id: 2,
+  description:"website 2"
+}
+]
 
 
 bookmarkRouter
@@ -12,7 +25,7 @@ bookmarkRouter
     .json(bookmarks)  
 
   })
-  .post((req, res) => {
+  .post(bodyParser,(req, res) => {
       
     
     const {description} = req.body;
@@ -83,8 +96,4 @@ bookmarkRouter
   })
 
 
-  
-
-
-  
 module.exports = bookmarkRouter
