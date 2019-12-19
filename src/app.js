@@ -3,7 +3,7 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
-const bookmarkRouter = require('../bookmarker/bookmarkRouter')
+const bookmarkRouter = require('./bookmarker/bookmarkRouter')
 
 const app = express()
 
